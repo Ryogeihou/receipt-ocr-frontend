@@ -92,36 +92,12 @@
 </template>
 
 <script>
-// import axios from 'axios'
+import axios from 'axios'
 export default {
   data () {
-    const item = {
-      "id": 1,
-      "memberId": 111,
-      "createTime": "2021-12-23T06:43:29",
-      "memberUsername": null,
-      "totalAmount": null,
-      "itemAmount": 10000,
-      "note": null,
-      "deleteStatus": null,
-      "modifyTime": null,
-      "children": [
-          {
-              id:1,
-              orderId:1,
-              spuName:"test",
-              categoryId:1,
-              skuId:1,
-              skuName:"test",
-              skuPrice:100,
-              skuQuantity:1,
-              subTotal: 100
-          }
-      ]
-    }
     return {
       expandAll:false,
-      orderList: Array(2).fill(item),
+      orderList: [],
       itemList:[
           {
             id:1,
@@ -145,15 +121,16 @@ export default {
   methods: {
     async getOrderList () {
       //   const { data: res } = await axios('order/list', { params: "", })
-      const res = await this.axios({
+      const {data} = await axios({
         method: 'get',
-        url: 'api/order/list',
+        url: '/api/order/list',
       })
-      console.log(res)
-      if (res.meta.status !== 200) {
+      console.log(data)
+      if (data.code !== 0) {
         console.log(res)
         return this.$message.error('获取订单数据失败')
       }
+      this.orderList = data.page.list
     },
 
     showEditBox () {

@@ -47,11 +47,6 @@ export default {
         username: 'admin',
         password: '123456'
       },
-      wxLoginForm: {
-        grant_type: 'client_credential',
-        appid: 'wxf2bf6ec6395716fe',
-        secret: '2d0f93777934f157832817e1d0e7c160'
-      },
       //   表单验证规则对象
       loginFromRules: {
         username: [
