@@ -12,7 +12,7 @@ Vue.use(VueCropper)
 import axios from 'axios'
 import './plugins/element.js'
 
-// axios.defaults.baseURL = 'http://127.0.0.1:8888/'
+// axios.defaults.baseURL = 'http://127.0.0.1:9888/'
 // axios.defaults.baseURL = process.env.BASE_API;
 
 

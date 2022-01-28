@@ -1,3 +1,26 @@
+module.exports={
+    devServer:{
+        proxy:{
+            "/api":{
+            target:'http://127.0.0.1:9888',
+              changeOrigin:true,
+                pathRewrite: {
+                    '^/api': ''
+                }
+            }
+        }
+
+    },
+    build: {
+        index: path.resolve(__dirname,  'dist/index.html' ),
+        assetsRoot: path.resolve(__dirname,  'dist' ),
+        assetsSubDirectory:  'static' ,
+        assetsPublicPath:  './' ,
+        productionSourceMap:  true
+      },
+    lintOnSave: false,
+    publicPath: './'
+}
 // module.exports={
 //     devServer:{
 //         proxy:{

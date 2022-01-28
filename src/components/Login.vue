@@ -30,11 +30,44 @@
         <el-form-item class="btns">
           <!-- <el-button type="primary" @click="loginWX">登录微信</el-button>
           <el-button type="primary" @click="login2">登录2</el-button> -->
-          <el-button type="primary" @click="login">登录</el-button>
-          <el-button type="info" @click="resetLoginForm">重置</el-button>
+          <el-button type="primary" @click="login">login</el-button>
+          <el-button type="success" @click="signUp">sign up</el-button>
+          <el-button type="info" @click="resetLoginForm">reset</el-button>
         </el-form-item>
       </el-form>
     </div>
+
+    <el-dialog
+      class="signUpBox"
+      title="New User"
+      :visible.sync="signUpBoxVisible"
+      width="50%"
+    >
+      <!-- 添加分类表单 -->
+      <el-form
+        :model="newUserForm"
+        :rules="loginFromRules"
+        ref="addCateFormRef"
+        label-width="100px"
+      >
+        <el-form-item label="username" prop="cat_name">
+          <el-input v-model="newUserForm.username"></el-input>
+        </el-form-item>
+        <el-form-item label="password" prop="cat_name">
+          <el-input v-model="newUserForm.password"></el-input>
+        </el-form-item>
+        <el-form-item label="confirm" prop="cat_name">
+          <el-input v-model="newUserForm.comfirm"></el-input>
+        </el-form-item>
+        <el-form-item label="email" prop="cat_name">
+          <el-input v-model="newUserForm.email"></el-input>
+        </el-form-item>
+      </el-form>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="signUpBoxVisible = false">取 消</el-button>
+        <el-button type="primary" @click="signUpBoxVisible">确 定</el-button>
+      </span>
+    </el-dialog>
   </div>
 </template>
 
@@ -48,6 +81,13 @@ export default {
         password: '123456'
       },
       //   表单验证规则对象
+      signUpBoxVisible: false,
+      newUserForm: {
+        username: "",
+        password: "",
+        confirm: "",
+        email: "",
+      },
       loginFromRules: {
         username: [
           { required: true, message: '请输入登录名称', trigger: 'blur' },
@@ -61,8 +101,12 @@ export default {
     }
   },
   methods: {
+    signUp () {
+      this.signUpBoxVisible = true
+    },
     resetLoginForm () {
       this.$refs.loginFormRef.resetFields()
+      this.loginForm = {}
     },
     login () {
       this.$refs.loginFormRef.validate(async valid => {
@@ -77,14 +121,14 @@ export default {
       })
     },
 
-      login2 () {
+    login2 () {
       this.$refs.loginFormRef.validate(async valid => {
         // eslint-disable-next-line no-useless-return
         if (!valid) return
         const res = await axios({
-        method: 'get',
-        url: 'api/cgi-bin/token?grant_type=client_credential&appid=wxf2bf6ec6395716fe&secret=2d0f93777934f157832817e1d0e7c160'
-      })
+          method: 'get',
+          url: 'api/cgi-bin/token?grant_type=client_credential&appid=wxf2bf6ec6395716fe&secret=2d0f93777934f157832817e1d0e7c160'
+        })
         if (res.status !== 200) return this.$message.error('登录失败！')
         this.$message.success('登录成功！')
         console.log(res)
@@ -150,5 +194,8 @@ export default {
 .btns {
   display: flex;
   justify-content: flex-end;
+}
+.signUpBox {
+  margin-top: 50px;
 }
 </style>

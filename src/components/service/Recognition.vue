@@ -23,21 +23,18 @@
           <!-- 只能上传jpg/png文件，且不超过500kb -->
         </div>
       </el-upload>
+
       <el-button
-        class="get-text"
+        class="query"
         size="small"
         type="primary"
         native-type="button"
-        @click="getText"
-        >save text</el-button
+        @click="query()"
+        >query</el-button
       >
-      <!-- 
-      <div v-for="item in orderString" :key="item.url">
-        {{item.result}}
-      </div> -->
       <div
         class="contentBox"
-        v-for="(item, index) in orderString"
+        v-for="(item, index) in orderBox"
         v-bind:key="index"
       >
         <el-row :gutter="20">
@@ -51,35 +48,49 @@
             </div>
           </el-col>
           <el-col class="imgBox" :span="6">
+            <span>{{ item.name }}</span>
+            <el-button
+              class="get-text"
+              size="small"
+              type="primary"
+              native-type="button"
+              @click="submit(orderBox[index])"
+              >save one</el-button
+            >
             <img :src="item.url" alt="" style="width: 100%" />
           </el-col>
           <el-col :span="9">
-            <div class="dateBox">
-              <div>時間：</div>
-              {{ item.result.date }}
-            </div>
-            <div
-              class="resultBox"
-              v-for="(row, i) in item.result.jsonArray"
-              :key="i"
+            <el-form
+              label-position="top"
+              label-width="100px"
+              :model="orderBox[index]"
+              style="max-width: 460px"
             >
-              <el-input
-                style="width: 230px"
-                @input="change($event)"
-                v-model="Object.keys(item.result.jsonArray[i])[0]"
-              ></el-input>
-              <span> </span>
-              <el-input
-                style="width: 80px"
-                @focus="change($event)"
-                v-model="Object.values(item.result.jsonArray[i])[0]"
-              ></el-input>
-            </div>
+              <el-form-item label="Date">
+                <el-input
+                  width="230px"
+                  v-model="orderBox[index].result.date"
+                ></el-input>
+              </el-form-item>
+              <el-form-item label="Items">
+                <!-- <template> -->
+                <div v-for="(row, i) in orderBox[index].items" :key="i">
+                  <el-input
+                    style="width: 230px"
+                    v-model="orderBox[index]['items'][i]"
+                  ></el-input>
+                  <el-input
+                    style="width: 80px"
+                    v-model="orderBox[index]['price'][i]"
+                  ></el-input>
+                </div>
+              </el-form-item>
+            </el-form>
           </el-col>
         </el-row>
       </div>
       <!-- <ul id="example-1">
-        <li v-for="row in orderString" :key="row">
+        <li v-for="row in orderBox" :key="row">
           {{ row }}
         </li>
       </ul> -->
@@ -136,6 +147,8 @@
 <script>
 // import { client } from '@/utils/alioss'
 
+import axios from 'axios'
+
 export default {
   data () {
     return {
@@ -143,9 +156,13 @@ export default {
         entype: "multipart/form-data"
       },
       fileList: [],
-      orderString: [],
-      inputList: "",
-
+      orderBox: [],
+      orderEntity: {
+        memberId: 1,
+        memberUsername: 'test',
+        totalAmount: 10000,
+        note: "",
+      },
 
       dialogVisible: false,
       // 裁剪组件的基础配置option
@@ -173,12 +190,69 @@ export default {
     }
   },
   methods: {
+    async query () {
+      const { data } = await axios({
+        method: 'get',
+        url: '/api/order/list',
+      })
+      console.log(data)
+      if (data.code !== 0) {
+        return this.$message.error('获取订单数据失败')
+      }
+    },
+    async submit (obj) {
+      let submitEntity = this.getSubmitEntity(obj)
+      console.log(submitEntity);
+      axios({
+        // headers: [Content-Type"application/json"],
+        url: "/api/order/save",
+        method: "post",
+        data: submitEntity
+      })
+      // const {data} = await axios({
+      //   method: 'get',
+      //   url: '/api/order/list',
+      //   data: newList
+      // })
+      //   console.log(data)
+      // if (data.code !== 0) {
+      //   return this.$message.error('获取订单数据失败')
+      // }
+    },
+    async submitAll (list) {
+      let newList = list.map(o => this.getSubmitEntity(o))
+      console.log(newList);
+      axios({
+        // headers: [Content-Type"application/json"],
+        url: "/api/order/save",
+        method: "post",
+        data: newList
+      })
+    },
+    getSubmitEntity (obj) {
+      let entity = {
+        memberId: this.orderEntity.memberId,
+        memberUsername: this.orderEntity.memberUsername,
+        totalAmount: this.orderEntity.totalAmount,
+        note: this.orderEntity.note,
+        receiptDate: obj.result.date,
+        jsonArray: this.zipItems(obj.items, obj.price)
+      }
+      return entity
+    },
+    zipItems (items, price) {
+      let obj = {}
+      let list = []
+      items.map((item, i) => list.push(obj = { [item]: price[i] }))
+      return list
+    },
     change (e) {
       this.$forceUpdate()
+      var result = array.map(o => { return { value: o.id, label: o.name } });
+      console.log(result);
     },
-    handleRemove (file, fileList) {
-      this.orderString = this.arrRemoveJson(this.orderString, 'url', file.url)
-      console.log(this.orderString);
+    handleRemove (file) {
+      this.orderBox = this.arrRemoveJson(this.orderBox, 'url', file.url)
     },
     handlePreview (file) {
       console.log(file);
@@ -187,13 +261,26 @@ export default {
       console.log("object");
     },
     successUpload (response, file) {
-      console.log(response);
       console.log(file);
-      this.orderString.unshift({
+      this.orderBox.unshift({
         url: file.url,
+        name: file.name,
         result: file.response.result,
+        items: file.response.result.jsonArray.map(o => Object.keys(o)[0]),
+        price: file.response.result.jsonArray.map(o => Object.values(o)[0]),
       })
+      // this.orderBox.itemEntity = this.orderBox.items.map(o,i => {return {o:price[i]}})
+      // let itemList = { 
+      //   url: file.url, 
+      //   items:[],
+      //   price:[]
+      //   }
+      // file.response.result.jsonArray.map(o => itemList['items'].push(Object.keys(o)[0]))
+      // file.response.result.jsonArray.map(o => itemList['price'].push(Object.values(o)[0]))
+      // this.itemList.unshift(itemEntity)
       this.$message.success('Success Upload')
+      console.log("orderBox");
+      console.log(this.orderBox);
     },
 
     arrRemoveJson (arr, attr, value) {
@@ -245,10 +332,14 @@ export default {
 .upload {
   width: 80px;
 }
-.get-text {
+.query {
   width: 80px;
-  margin-top: 16px;
-  margin-bottom: 20px;
+  margin-top: 20px;
+}
+.get-text {
+  margin-left: 30px;
+  margin-bottom: 18px;
+  width: 80px;
 }
 
 cropper-content {

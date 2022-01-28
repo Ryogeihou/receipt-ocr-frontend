@@ -95,7 +95,7 @@ export default {
         145: 'iconfont icon-baobiao'
       },
       // Left navBar
-      isCollapse: false,
+      isCollapse: true,
       activePath: ''
     }
   },
