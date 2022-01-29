@@ -29,7 +29,7 @@
         size="small"
         type="primary"
         native-type="button"
-        @click="query()"
+        @click="queryResult()"
         >query</el-button
       >
       <div
@@ -68,7 +68,7 @@
             >
               <el-form-item label="Date">
                 <el-input
-                  width="230px"
+                  style="width: 310px"
                   v-model="orderBox[index].result.date"
                 ></el-input>
               </el-form-item>
@@ -80,10 +80,38 @@
                     v-model="orderBox[index]['items'][i]"
                   ></el-input>
                   <el-input
+                    @input="getTotal(index)"
                     style="width: 80px"
                     v-model="orderBox[index]['price'][i]"
                   ></el-input>
+                  <el-button
+                    class="delBtn"
+                    type="text"
+                    size="mini"
+                    @click="deleteItem(index, i)"
+                  >
+                    Del
+                  </el-button>
                 </div>
+              </el-form-item>
+              <el-form-item>
+                <el-button type="primary" size="mini" @click="addItem(index)">
+                  add item
+                </el-button>
+              </el-form-item>
+              <el-form-item label="Total">
+                <el-input
+                  style="width: 310px"
+                  v-model="orderEntity.totalAmount"
+                ></el-input>
+                <el-button
+                    class="delBtn"
+                    type="text"
+                    size="mini"
+                    @click="getTotal(index)"
+                  >
+                    getTotal
+                  </el-button>
               </el-form-item>
             </el-form>
           </el-col>
@@ -160,7 +188,7 @@ export default {
       orderEntity: {
         memberId: 1,
         memberUsername: 'test',
-        totalAmount: 10000,
+        totalAmount: 0,
         note: "",
       },
 
@@ -189,21 +217,43 @@ export default {
       loading: false
     }
   },
+
   methods: {
+    getTotal (index) {
+      let sum = 0
+      this.orderBox[index].price.map(v => sum += Number(v))
+      this.orderEntity.totalAmount = sum
+    },
+    addItem (index) {
+      this.orderBox[index].items.push('0')
+      this.orderBox[index].price.push('0')
+    },
+    deleteItem (index, i) {
+      this.orderBox[index].items.splice(i, 1)
+      this.orderBox[index].price.splice(i, 1)
+    },
+    async queryResult () {
+      const { data } = await axios({
+        method: 'get',
+        url: '/api/upload/query?fileName=0129test',
+      })
+      console.log(data)
+      if (data.code !== 0) {
+        return this.$message.error('error')
+      }
+    },
     async query () {
       const { data } = await axios({
         method: 'get',
         url: '/api/order/list',
       })
-      console.log(data)
       if (data.code !== 0) {
-        return this.$message.error('获取订单数据失败')
+        return this.$message.error('error')
       }
     },
     async submit (obj) {
       let submitEntity = this.getSubmitEntity(obj)
-      console.log(submitEntity);
-      axios({
+      const { data } = await axios({
         // headers: [Content-Type"application/json"],
         url: "/api/order/save",
         method: "post",
@@ -215,9 +265,10 @@ export default {
       //   data: newList
       // })
       //   console.log(data)
-      // if (data.code !== 0) {
-      //   return this.$message.error('获取订单数据失败')
-      // }
+      if (data.code !== 0) {
+        return this.$message.error('error')
+      }
+      return this.$message.success('Save record successfully!')
     },
     async submitAll (list) {
       let newList = list.map(o => this.getSubmitEntity(o))
@@ -268,6 +319,7 @@ export default {
         result: file.response.result,
         items: file.response.result.jsonArray.map(o => Object.keys(o)[0]),
         price: file.response.result.jsonArray.map(o => Object.values(o)[0]),
+
       })
       // this.orderBox.itemEntity = this.orderBox.items.map(o,i => {return {o:price[i]}})
       // let itemList = { 
@@ -279,7 +331,6 @@ export default {
       // file.response.result.jsonArray.map(o => itemList['price'].push(Object.values(o)[0]))
       // this.itemList.unshift(itemEntity)
       this.$message.success('Success Upload')
-      console.log("orderBox");
       console.log(this.orderBox);
     },
 
@@ -293,7 +344,7 @@ export default {
     changeUpload (file, fileList) {
       const isLt5M = file.size / 1024 / 1024 < 5
       if (!isLt5M) {
-        this.$message.error('上传文件大小不能超过 5MB!')
+        this.$message.error('Upload file size can not more than 5MB!')
         return false
       }
       this.fileinfo = file
@@ -361,5 +412,8 @@ cropper-content {
 .contentBox {
   margin: 20px;
   background-color: rgb(204, 198, 198);
+}
+.delBtn {
+  margin-left: 20px;
 }
 </style>
