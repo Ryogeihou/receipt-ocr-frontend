@@ -349,7 +349,6 @@ export default {
       }
       this.fileinfo = file
 
-      // 上传成功后将图片地址赋值给裁剪框显示图片
       this.$nextTick(() => {
         this.option.img = file.url
         this.dialogVisible = true
@@ -359,7 +358,6 @@ export default {
       this.$refs.cropper.getCropBlob((data) => {
         var fileName = 'goods' + this.fileinfo.uid
         this.loading = true
-        //上传阿里云服务器
         client().put(fileName, data).then(result => {
           this.dialogVisible = false
           this.picsList.push(result.url)
