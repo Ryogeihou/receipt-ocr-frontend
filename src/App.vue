@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <!-- 路由占位符 -->
+<!--    ルータに登録したページをレンタリング用のタグ-->
     <router-view></router-view>
   </div>
 </template>

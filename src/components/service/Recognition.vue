@@ -20,7 +20,6 @@
           >upload
         </el-button>
         <div slot="tip" class="el-upload__tip">
-          <!-- 只能上传jpg/png文件，且不超过500kb -->
         </div>
       </el-upload>
 
@@ -29,89 +28,49 @@
         size="small"
         type="primary"
         native-type="button"
-        @click="queryResult()"
+        @click="queryResult(fileName)"
         >query</el-button
       >
-      <div
-        class="contentBox"
-        v-for="(item, index) in orderBox"
-        v-bind:key="index"
+      <el-input
+        style="width: 70px; margin-left: 20px"
+        size="small"
+        v-model="fileName"
       >
+      </el-input>
+      <div class="contentBox" v-for="(item, index) in orderBox" v-bind:key="index">
         <el-row :gutter="20">
-          <el-col :span="7">
-            <div
-              class="resultBox"
-              v-for="(row, index) in item.result.content"
-              :key="index"
-            >
-              {{ row }}
-            </div>
+          <el-col :span="5">
+            <div class="resultBox" v-for="(row, index) in item.result.content" :key="index">
+              {{ row }}</div>
           </el-col>
           <el-col class="imgBox" :span="6">
             <span>{{ item.name }}</span>
-            <el-button
-              class="get-text"
-              size="small"
-              type="primary"
-              native-type="button"
-              @click="submit(orderBox[index])"
-              >save one</el-button
-            >
+            <el-button class="get-text" size="small" type="primary" native-type="button" @click="submit(orderBox[index])">
+              save one</el-button>
             <img :src="item.url" alt="" style="width: 100%" />
           </el-col>
-          <el-col :span="9">
-            <el-form
-              label-position="top"
-              label-width="100px"
-              :model="orderBox[index]"
-              style="max-width: 460px"
-            >
+          <el-col :span="11">
+            <el-form label-position="top" label-width="100px" :model="orderBox[index]" style="max-width: 460px">
               <el-form-item label="Date">
-                <el-input
-                  style="width: 310px"
-                  v-model="orderBox[index].result.date"
-                ></el-input>
+                <el-input style="width: 310px" v-model="orderBox[index].result.date"></el-input>
               </el-form-item>
               <el-form-item label="Items">
-                <!-- <template> -->
                 <div v-for="(row, i) in orderBox[index].items" :key="i">
-                  <el-input
-                    style="width: 230px"
-                    v-model="orderBox[index]['items'][i]"
-                  ></el-input>
-                  <el-input
-                    @input="getTotal(index)"
-                    style="width: 80px"
-                    v-model="orderBox[index]['price'][i]"
-                  ></el-input>
-                  <el-button
-                    class="delBtn"
-                    type="text"
-                    size="mini"
-                    @click="deleteItem(index, i)"
-                  >
-                    Del
-                  </el-button>
+                  <el-input style="width: 230px" v-model="orderBox[index]['items'][i]"></el-input>
+                  <el-input @input="getTotal(index)" style="width: 80px" v-model="orderBox[index]['price'][i]"></el-input>
+                  <el-button class="delBtn" type="text" size="mini" @click="deleteItem(index, i)">
+                    Del</el-button>
                 </div>
               </el-form-item>
               <el-form-item>
                 <el-button type="primary" size="mini" @click="addItem(index)">
-                  add item
-                </el-button>
+                  add item</el-button>
               </el-form-item>
               <el-form-item label="Total">
-                <el-input
-                  style="width: 310px"
-                  v-model="orderEntity.totalAmount"
-                ></el-input>
-                <el-button
-                    class="delBtn"
-                    type="text"
-                    size="mini"
-                    @click="getTotal(index)"
-                  >
-                    getTotal
-                  </el-button>
+                <el-input style="width: 310px" v-model="orderEntity.totalAmount"></el-input>
+                <el-button class="delBtn" type="text" size="mini" @click="getTotal(index)">
+                  getTotal
+                </el-button>
               </el-form-item>
             </el-form>
           </el-col>
@@ -131,7 +90,7 @@
         <input type="submit" value="提交" />
       </form> -->
 
-      <!-- <el-upload class="upload-demo" action="" drag 
+      <!-- <el-upload class="upload-demo" action="" drag
 :auto-upload="false" :show-file-list="false" :on-change='changeUpload'>
         <i class="el-icon-upload"></i>
         <div class="el-upload__text">点击上传</div>
@@ -185,6 +144,7 @@ export default {
       },
       fileList: [],
       orderBox: [],
+      fileName: '',
       orderEntity: {
         memberId: 1,
         memberUsername: 'test',
@@ -232,10 +192,11 @@ export default {
       this.orderBox[index].items.splice(i, 1)
       this.orderBox[index].price.splice(i, 1)
     },
-    async queryResult () {
+    async queryResult (fileName) {
+      console.log(fileName);
       const { data } = await axios({
         method: 'get',
-        url: '/api/upload/query?fileName=0129test',
+        url: '/api/upload/query?fileName=' + fileName,
       })
       console.log(data)
       if (data.code !== 0) {
@@ -245,58 +206,47 @@ export default {
     async query () {
       const { data } = await axios({
         method: 'get',
-        url: '/api/order/list',
-      })
-      if (data.code !== 0) {
-        return this.$message.error('error')
-      }
+        url: '/api/order/list',})
+      if (data.code !== 0) {return this.$message.error('error')}
     },
-    async submit (obj) {
+    async submit (obj) { // orderBoxの一つを渡す
       let submitEntity = this.getSubmitEntity(obj)
       const { data } = await axios({
-        // headers: [Content-Type"application/json"],
         url: "/api/order/save",
         method: "post",
-        data: submitEntity
-      })
-      // const {data} = await axios({
-      //   method: 'get',
-      //   url: '/api/order/list',
-      //   data: newList
-      // })
-      //   console.log(data)
-      if (data.code !== 0) {
-        return this.$message.error('error')
-      }
+        data: submitEntity})
+      if (data.code !== 0) {return this.$message.error('error')}
       return this.$message.success('Save record successfully!')
     },
-    async submitAll (list) {
-      let newList = list.map(o => this.getSubmitEntity(o))
-      console.log(newList);
-      axios({
-        // headers: [Content-Type"application/json"],
-        url: "/api/order/save",
-        method: "post",
-        data: newList
-      })
-    },
-    getSubmitEntity (obj) {
+    getSubmitEntity (obj) { // 送るデータの前処理
       let entity = {
         memberId: this.orderEntity.memberId,
         memberUsername: this.orderEntity.memberUsername,
         totalAmount: this.orderEntity.totalAmount,
         note: this.orderEntity.note,
         receiptDate: obj.result.date,
-        jsonArray: this.zipItems(obj.items, obj.price)
-      }
+        jsonArray: this.zipItems(obj.items, obj.price)}
       return entity
     },
     zipItems (items, price) {
       let obj = {}
       let list = []
       items.map((item, i) => list.push(obj = { [item]: price[i] }))
-      return list
+      return list // javaのJSONArray型に合うようにする
     },
+
+    async submitAll (list) {
+      let newList = list.map(o => this.getSubmitEntity(o))
+      console.log(newList);
+      axios({
+        // headers: [Content-Type"application/json"],
+        url: "/api/order/saveBatch",
+        method: "post",
+        data: newList
+      })
+    },
+
+
     change (e) {
       this.$forceUpdate()
       var result = array.map(o => { return { value: o.id, label: o.name } });
@@ -314,22 +264,12 @@ export default {
     successUpload (response, file) {
       console.log(file);
       this.orderBox.unshift({
-        url: file.url,
+        url: file.url, //画像のurl
         name: file.name,
-        result: file.response.result,
+        result: file.response.result,// backendからのresultEntity
         items: file.response.result.jsonArray.map(o => Object.keys(o)[0]),
         price: file.response.result.jsonArray.map(o => Object.values(o)[0]),
-
       })
-      // this.orderBox.itemEntity = this.orderBox.items.map(o,i => {return {o:price[i]}})
-      // let itemList = { 
-      //   url: file.url, 
-      //   items:[],
-      //   price:[]
-      //   }
-      // file.response.result.jsonArray.map(o => itemList['items'].push(Object.keys(o)[0]))
-      // file.response.result.jsonArray.map(o => itemList['price'].push(Object.values(o)[0]))
-      // this.itemList.unshift(itemEntity)
       this.$message.success('Success Upload')
       console.log(this.orderBox);
     },
